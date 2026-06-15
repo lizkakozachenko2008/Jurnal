@@ -58,8 +58,22 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const loginAsTeacher = () => {
+    const teacher = {
+      id: 'teacher-demo',
+      email: 'teacher@demo.local',
+      fullName: 'Анна Сергеевна',
+      role: 'teacher',
+      groupName: '',
+    };
+
+    localStorage.setItem('token', 'teacher-demo-token');
+    localStorage.setItem('user', JSON.stringify(teacher));
+    setUser(teacher);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, loginAsTeacher, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

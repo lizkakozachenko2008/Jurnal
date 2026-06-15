@@ -9,6 +9,10 @@ import Grades from './components/Grades';
 import SubjectGrades from './components/SubjectGrades';
 import LabWorks from './components/LabWorks';
 import ProtectedRoute from './components/ProtectedRoute';
+import TeacherDashboard from './teacher/TeacherDashboard';
+import TeacherJournal from './teacher/TeacherJournal';
+import TeacherProgram from './teacher/TeacherProgram';
+import TeacherSubmissions from './teacher/TeacherSubmissions';
 
 function Layout({ children }) {
   return (
@@ -21,6 +25,25 @@ function Layout({ children }) {
 
 export default function App() {
   const { user } = useAuth();
+  const isTeacher = user?.role === 'teacher' || user?.role === 'преподаватель';
+
+  const protectedPage = (studentComponent, teacherComponent = null) => (
+    <ProtectedRoute>
+      <Layout>{isTeacher && teacherComponent ? teacherComponent : studentComponent}</Layout>
+    </ProtectedRoute>
+  );
+
+  const teacherPage = (component) => (
+    <ProtectedRoute>
+      {isTeacher ? <Layout>{component}</Layout> : <Navigate to="/" replace />}
+    </ProtectedRoute>
+  );
+
+  const studentPage = (component) => (
+    <ProtectedRoute>
+      {!isTeacher ? <Layout>{component}</Layout> : <Navigate to="/" replace />}
+    </ProtectedRoute>
+  );
 
   return (
     <Routes>
@@ -34,44 +57,27 @@ export default function App() {
       />
       <Route
         path="/"
-        element={
-          <ProtectedRoute>
-            <Layout><Dashboard /></Layout>
-          </ProtectedRoute>
-        }
+        element={protectedPage(<Dashboard />, <TeacherDashboard />)}
       />
       <Route
         path="/schedule"
-        element={
-          <ProtectedRoute>
-            <Layout><Schedule /></Layout>
-          </ProtectedRoute>
-        }
+        element={studentPage(<Schedule />)}
       />
       <Route
         path="/grades"
-        element={
-          <ProtectedRoute>
-            <Layout><Grades /></Layout>
-          </ProtectedRoute>
-        }
+        element={studentPage(<Grades />)}
       />
       <Route
         path="/grades/:subject"
-        element={
-          <ProtectedRoute>
-            <Layout><SubjectGrades /></Layout>
-          </ProtectedRoute>
-        }
+        element={studentPage(<SubjectGrades />)}
       />
       <Route
         path="/lab-works"
-        element={
-          <ProtectedRoute>
-            <Layout><LabWorks /></Layout>
-          </ProtectedRoute>
-        }
+        element={studentPage(<LabWorks />)}
       />
+      <Route path="/journal" element={teacherPage(<TeacherJournal />)} />
+      <Route path="/program" element={teacherPage(<TeacherProgram />)} />
+      <Route path="/submissions" element={teacherPage(<TeacherSubmissions />)} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -5,6 +5,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const isTeacher = user?.role === 'teacher' || user?.role === 'преподаватель';
 
   const handleLogout = () => {
     logout();
@@ -12,7 +13,7 @@ export default function Navbar() {
   };
 
   const navLink = (to, label) => {
-    const isActive = location.pathname === to;
+    const isActive = location.pathname === to || (to !== '/' && location.pathname.startsWith(`${to}/`));
     return (
       <Link
         to={to}
@@ -26,6 +27,10 @@ export default function Navbar() {
       </Link>
     );
   };
+
+  const navigation = isTeacher
+    ? [['/', 'Главная'], ['/journal', 'Журнал'], ['/program', 'Программа'], ['/submissions', 'Сдача работ']]
+    : [['/', 'Главная'], ['/schedule', 'Расписание'], ['/grades', 'Оценки'], ['/lab-works', 'Лабораторные']];
 
   return (
     <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50">
@@ -43,10 +48,9 @@ export default function Navbar() {
               </span>
             </Link>
             <div className="hidden sm:flex gap-1">
-              {navLink('/', 'Главная')}
-              {navLink('/schedule', 'Расписание')}
-              {navLink('/grades', 'Оценки')}
-              {navLink('/lab-works', 'Лабораторные')}
+              {navigation.map(([to, label]) => (
+                <span key={to}>{navLink(to, label)}</span>
+              ))}
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -56,7 +60,7 @@ export default function Navbar() {
               </div>
               <div className="hidden sm:block">
                 <div className="text-sm font-semibold text-slate-800 leading-tight">{user?.fullName || 'Пользователь'}</div>
-                <div className="text-xs text-slate-400 leading-tight">{user?.groupName || '—'}</div>
+                <div className="text-xs text-slate-400 leading-tight">{isTeacher ? 'Преподаватель' : (user?.groupName || '—')}</div>
               </div>
             </div>
             <button onClick={handleLogout} className="btn-danger">
@@ -66,6 +70,11 @@ export default function Navbar() {
               <span className="hidden sm:inline">Выйти</span>
             </button>
           </div>
+        </div>
+        <div className="sm:hidden flex gap-1 overflow-x-auto pb-2 -mx-1 px-1">
+          {navigation.map(([to, label]) => (
+            <span key={to} className="flex-shrink-0">{navLink(to, label)}</span>
+          ))}
         </div>
       </div>
     </nav>

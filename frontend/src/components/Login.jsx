@@ -7,7 +7,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginAsTeacher } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -22,6 +22,11 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTeacherLogin = () => {
+    loginAsTeacher();
+    navigate('/');
   };
 
   return (
@@ -102,6 +107,20 @@ export default function Login() {
               {loading ? 'Вход...' : 'Войти'}
             </button>
           </form>
+
+          <div className="flex items-center gap-3 my-5">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs text-slate-400">или</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTeacherLogin}
+            className="w-full py-3 px-4 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-bold hover:bg-indigo-100 transition-colors"
+          >
+            Войти как преподаватель
+          </button>
 
           <p className="mt-6 text-center text-sm text-slate-500">
             Нет аккаунта?{' '}

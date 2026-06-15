@@ -26,7 +26,12 @@ export default function Register() {
       await register(form.email, form.password, form.fullName, form.groupName);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.data?.error || err.response?.data?.error || 'Ошибка регистрации');
+      const serverMessage = err.response?.data?.data?.error
+        || err.response?.data?.error
+        || err.response?.data?.errors?.join('. ');
+      setError(serverMessage || (err.request
+        ? 'Сервер регистрации не запущен. Запустите бэкенд на порту 5000.'
+        : 'Ошибка регистрации'));
     } finally {
       setLoading(false);
     }
