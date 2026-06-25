@@ -5,12 +5,12 @@ const { JWT_SECRET, JWT_EXPIRES_IN } = require('../utils/constants');
 class AuthService {
   static generateToken(user) {
     return jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email, 
-        role: user.role, 
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
         groupName: user.group_name,
-        fullName: user.full_name 
+        fullName: user.full_name
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -18,16 +18,16 @@ class AuthService {
   }
 
   static async register(userData) {
-    const { email, password, fullName, groupName } = userData;
-    
+    const { email, password, fullName, groupName, role } = userData;
+
     const existingUser = await User.findByEmail(email);
     if (existingUser) {
       throw new Error('Пользователь с таким email уже существует');
     }
-    
-    const newUser = await User.create({ email, password, fullName, groupName });
+
+    const newUser = await User.create({ email, password, fullName, groupName, role });
     const token = this.generateToken(newUser);
-    
+
     return { token, user: newUser };
   }
 
@@ -36,12 +36,12 @@ class AuthService {
     if (!user) {
       throw new Error('Неверный email или пароль');
     }
-    
+
     const isValid = await User.comparePassword(password, user.password);
     if (!isValid) {
       throw new Error('Неверный email или пароль');
     }
-    
+
     const token = this.generateToken(user);
     return { token, user };
   }
