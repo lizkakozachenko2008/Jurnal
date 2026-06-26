@@ -118,44 +118,44 @@ CREATE TABLE student_teams (
 
 -- Преподаватели (пароль: teacher123)
 INSERT INTO users (email, password, full_name, role) VALUES
-  ('ivanova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Иванова Мария Ивановна', 'teacher'),
-  ('petrov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Петров Сергей Викторович', 'teacher'),
-  ('sidorova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Сидорова Анна Константиновна', 'teacher'),
-  ('kozlov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Козлов Дмитрий Михайлович', 'teacher'),
-  ('smirnova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Смирнова Елена Александровна', 'teacher');
+  ('ivanova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Иванова Мария Ивановна', 'teacher'),
+  ('petrov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Петров Сергей Викторович', 'teacher'),
+  ('sidorova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Сидорова Анна Константиновна', 'teacher'),
+  ('kozlov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Козлов Дмитрий Михайлович', 'teacher'),
+  ('smirnova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Смирнова Елена Александровна', 'teacher');
 
 -- Студенты группы ИС-41 (пароль: student123)
 INSERT INTO users (email, password, full_name, role, group_name, is_active) VALUES
-  ('aleksandrov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Александров Максим Сергеевич', 'student', 'ИС-41', true),
-  ('belyaeva@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Беляева Анастасия Дмитриевна', 'student', 'ИС-41', true),
-  ('vorontsov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Воронцов Артём Николаевич', 'student', 'ИС-41', true),
-  ('grigoreva@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Григорьева Дарья Олеговна', 'student', 'ИС-41', true),
-  ('dmitriev@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Дмитриев Кирилл Андреевич', 'student', 'ИС-41', false),
-  ('egorova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Егорова Полина Владимировна', 'student', 'ИС-41', true),
-  ('zhukov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Жуков Никита Павлович', 'student', 'ИС-41', true),
-  ('zakharova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Захарова София Игоревна', 'student', 'ИС-41', true);
+  ('aleksandrov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Александров Максим Сергеевич', 'student', 'ИС-41', true),
+  ('belyaeva@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Беляева Анастасия Дмитриевна', 'student', 'ИС-41', true),
+  ('vorontsov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Воронцов Артём Николаевич', 'student', 'ИС-41', true),
+  ('grigoreva@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Григорьева Дарья Олеговна', 'student', 'ИС-41', true),
+  ('dmitriev@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Дмитриев Кирилл Андреевич', 'student', 'ИС-41', false),
+  ('egorova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Егорова Полина Владимировна', 'student', 'ИС-41', true),
+  ('zhukov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Жуков Никита Павлович', 'student', 'ИС-41', true),
+  ('zakharova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Захарова София Игоревна', 'student', 'ИС-41', true);
 
 -- Студенты группы ИС-42
 INSERT INTO users (email, password, full_name, role, group_name, is_active) VALUES
-  ('ivanov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Иванов Артём Владимирович', 'student', 'ИС-42', true),
-  ('kozlova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Козлова Мария Сергеевна', 'student', 'ИС-42', true),
-  ('lebedev@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Лебедев Денис Алексеевич', 'student', 'ИС-42', true),
-  ('morozova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Морозова Елизавета Дмитриевна', 'student', 'ИС-42', true),
-  ('nikolaev@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Николаев Владислав Игоревич', 'student', 'ИС-42', true),
-  ('orlova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Орлова Анна Максимовна', 'student', 'ИС-42', true),
-  ('pavlov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Павлов Глеб Романович', 'student', 'ИС-42', true),
-  ('sokolova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Соколова Виктория Андреевна', 'student', 'ИС-42', true);
+  ('ivanov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Иванов Артём Владимирович', 'student', 'ИС-42', true),
+  ('kozlova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Козлова Мария Сергеевна', 'student', 'ИС-42', true),
+  ('lebedev@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Лебедев Денис Алексеевич', 'student', 'ИС-42', true),
+  ('morozova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Морозова Елизавета Дмитриевна', 'student', 'ИС-42', true),
+  ('nikolaev@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Николаев Владислав Игоревич', 'student', 'ИС-42', true),
+  ('orlova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Орлова Анна Максимовна', 'student', 'ИС-42', true),
+  ('pavlov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Павлов Глеб Романович', 'student', 'ИС-42', true),
+  ('sokolova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Соколова Виктория Андреевна', 'student', 'ИС-42', true);
 
 -- Студенты группы ПО-31
 INSERT INTO users (email, password, full_name, role, group_name, is_active) VALUES
-  ('belov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Белов Александр Петрович', 'student', 'ПО-31', true),
-  ('guseva@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ГUSEВА Ксения Валерьевна', 'student', 'ПО-31', true),
-  ('efimov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Ефимов Тимур Рамилевич', 'student', 'ПО-31', true),
-  ('klimova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Климова Алиса Денисовна', 'student', 'ПО-31', true),
-  ('mironov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Миронов Марк Богданович', 'student', 'ПО-31', true),
-  ('polyakova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Полякова Ульяна Евгеньевна', 'student', 'ПО-31', true),
-  ('tarasov@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Тарасов Даниил Кириллович', 'student', 'ПО-31', true),
-  ('fedorova@mail.ru', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Фёдорова Софья Артёмовна', 'student', 'ПО-31', true);
+  ('belov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Белов Александр Петрович', 'student', 'ПО-31', true),
+  ('guseva@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'ГUSEВА Ксения Валерьевна', 'student', 'ПО-31', true),
+  ('efimov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Ефимов Тимур Рамилевич', 'student', 'ПО-31', true),
+  ('klimova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Климова Алиса Денисовна', 'student', 'ПО-31', true),
+  ('mironov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Миронов Марк Богданович', 'student', 'ПО-31', true),
+  ('polyakova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Полякова Ульяна Евгеньевна', 'student', 'ПО-31', true),
+  ('tarasov@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Тарасов Даниил Кириллович', 'student', 'ПО-31', true),
+  ('fedorova@mail.ru', '$2a$10$Oo/qRyry7cnlNb/YO4MDg.1gVjPFfRr2jxkeTYSLT8eEwXr1zXc3G', 'Фёдорова Софья Артёмовна', 'student', 'ПО-31', true);
 
 -- === РАСПИСАНИЕ ===
 INSERT INTO schedules (group_name, subject, teacher_name, teacher_email, day_of_week, start_time, end_time, classroom) VALUES
