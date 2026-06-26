@@ -16,6 +16,7 @@ import TeacherJournal from './components/TeacherJournal';
 import TeacherLabWorks from './components/TeacherLabWorks';
 import TeacherPrograms from './components/TeacherPrograms';
 import TeacherSubmissions from './components/TeacherSubmissions';
+import GradeCharts from './components/GradeCharts';
 
 function Layout({ children }) {
   return (
@@ -64,6 +65,14 @@ export default function App() {
         element={
           <ProtectedRoute allowedRoles={['teacher']}>
             <Layout><TeacherJournal /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/teacher/charts/:subject/:groupName"
+        element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <Layout><GradeCharts /></Layout>
           </ProtectedRoute>
         }
       />
