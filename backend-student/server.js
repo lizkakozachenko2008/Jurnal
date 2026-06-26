@@ -1,6 +1,20 @@
+const express = require('express');
 const app = require('./src/app');
 const { pool } = require('./src/config/database');
 const { PORT } = require('./src/utils/constants');
+const path = require('path');
+const fs = require('fs');
+
+// Создать директорию uploads
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  fs.mkdirSync(path.join(uploadsDir, 'programs'), { recursive: true });
+  fs.mkdirSync(path.join(uploadsDir, 'labs'), { recursive: true });
+}
+
+// Статический доступ к загруженным файлам
+app.use('/uploads', express.static(uploadsDir));
 
 // Инициализация таблиц
 const initTables = async () => {
@@ -78,6 +92,7 @@ const initTables = async () => {
         topic VARCHAR(300),
         description TEXT,
         materials TEXT,
+        materials_file TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -111,6 +126,9 @@ const initTables = async () => {
         student_name VARCHAR(200),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Миграции для существующих БД
+      ALTER TABLE lesson_programs ADD COLUMN IF NOT EXISTS materials_file TEXT;
     `);
     console.log('✅ Таблицы созданы');
   } catch (error) {

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const teacherController = require('../controllers/teacherController');
 const { authMiddleware, requireTeacher } = require('../middleware/auth');
+const { uploadProgram } = require('../middleware/upload');
 
 // Все маршруты требуют авторизации и роль преподавателя
 router.use(authMiddleware);
@@ -76,6 +77,9 @@ router.put('/programs/:id', teacherController.updateLessonInProgram);
 
 // Удалить занятие из программы
 router.delete('/programs/:id', teacherController.removeLessonFromProgram);
+
+// Загрузить PDF к занятию
+router.post('/programs/:id/upload', uploadProgram, teacherController.uploadProgramFile);
 
 // === РАСПИСАНИЕ ===
 // Получить расписание преподавателя

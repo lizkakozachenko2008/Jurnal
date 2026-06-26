@@ -1,6 +1,7 @@
 const Schedule = require('../models/Schedule');
 const Grade = require('../models/Grade');
 const LabWork = require('../models/LabWork');
+const LabSubmission = require('../models/LabSubmission');
 
 class StudentService {
   static async getSchedule(groupName) {
@@ -21,6 +22,17 @@ class StudentService {
 
   static async getLabWorkDetails(id) {
     return LabWork.findById(id);
+  }
+
+  static async submitLabWork({ labWorkId, studentEmail, studentName, solutionText, teamName, fileUrl }) {
+    return LabSubmission.createSubmission({
+      labWorkId,
+      studentEmail,
+      studentName,
+      solutionText,
+      teamName,
+      fileUrl,
+    });
   }
 }
 

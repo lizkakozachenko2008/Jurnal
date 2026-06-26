@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 
@@ -21,17 +21,24 @@ export default function TeacherJournal() {
   const [error, setError] = useState('');
 
   // Состояние для редактирования
-  const [hoveredCell, setHoveredCell] = useState(null); // { studentId, date }
+  const [hoveredCell, setHoveredCell] = useState(null);
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const [hoveredCol, setHoveredCol] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [editComment, setEditComment] = useState('');
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [currentGradeTarget, setCurrentGradeTarget] = useState(null);
+
+  // Контекстное меню для ячейки
+  const [contextMenu, setContextMenu] = useState(null); // { x, y, student, date }
+  const contextMenuRef = useRef(null);
 
   // Добавление даты занятия
   const [showAddDate, setShowAddDate] = useState(false);
   const [newDate, setNewDate] = useState('');
   const [newTopic, setNewTopic] = useState('');
   const [newLessonType, setNewLessonType] = useState('lecture');
+  const [dateError, setDateError] = useState('');
 
   const fetchJournal = useCallback(async () => {
     try {
@@ -51,6 +58,17 @@ export default function TeacherJournal() {
     fetchJournal();
   }, [fetchJournal]);
 
+  // Закрытие контекстного меню при клике вне
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target)) {
+        setContextMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Получить оценку студента на дату
   const getGrade = (studentEmail, date) => {
     return grades.find(g => g.student_email === studentEmail && g.date === date);
@@ -61,9 +79,17 @@ export default function TeacherJournal() {
     return attendance.find(a => a.student_email === studentEmail && a.lesson_date === date);
   };
 
+  // Проверка на воскресенье
+  const isSunday = (dateStr) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    return d.getDay() === 0;
+  };
+
   // Обработка клика по ячейке (левая кнопка — оценка)
   const handleCellClick = (student, date, e) => {
     if (e.button !== 0) return;
+    setContextMenu(null);
     const existing = getGrade(student.email, date);
     setCurrentGradeTarget({ student, date, existing });
     setEditValue(existing ? String(existing.grade) : '');
@@ -71,36 +97,21 @@ export default function TeacherJournal() {
     setShowGradeModal(true);
   };
 
-  // Обработка средней кнопки мыши — опоздание
-  const handleCellMiddleClick = async (student, date, e) => {
-    if (e.button !== 1) return;
+  // Обработка правой кнопки мыши — контекстное меню
+  const handleCellRightClick = (student, date, e) => {
     e.preventDefault();
-    const existing = getAttendance(student.email, date);
-    const newStatus = existing?.status === 'late' ? 'present' : 'late';
-    const minutesLate = newStatus === 'late' ? 15 : 0;
-
-    try {
-      await api.post('/api/teacher/attendance', {
-        studentEmail: student.email,
-        studentName: student.full_name,
-        subject,
-        lessonDate: date,
-        status: newStatus,
-        minutesLate,
-      });
-      await fetchJournal();
-    } catch (err) {
-      console.error('Ошибка отметки опоздания:', err);
-    }
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      student,
+      date,
+    });
   };
 
-  // Обработка правой кнопки мыши — отсутствие
-  const handleCellRightClick = async (student, date, e) => {
-    if (e.button !== 2) return;
-    e.preventDefault();
+  // Отметить отсутствие через контекстное меню
+  const markAbsent = async (student, date) => {
     const existing = getAttendance(student.email, date);
     const newStatus = existing?.status === 'absent' ? 'present' : 'absent';
-
     try {
       await api.post('/api/teacher/attendance', {
         studentEmail: student.email,
@@ -114,13 +125,35 @@ export default function TeacherJournal() {
     } catch (err) {
       console.error('Ошибка отметки отсутствия:', err);
     }
+    setContextMenu(null);
   };
 
-  // Сохранить оценку
+  // Отметить опоздание через контекстное меню
+  const markLate = async (student, date) => {
+    const existing = getAttendance(student.email, date);
+    const newStatus = existing?.status === 'late' ? 'present' : 'late';
+    const minutesLate = newStatus === 'late' ? 15 : 0;
+    try {
+      await api.post('/api/teacher/attendance', {
+        studentEmail: student.email,
+        studentName: student.full_name,
+        subject,
+        lessonDate: date,
+        status: newStatus,
+        minutesLate,
+      });
+      await fetchJournal();
+    } catch (err) {
+      console.error('Ошибка отметки опоздания:', err);
+    }
+    setContextMenu(null);
+  };
+
+  // Сохранить оценку (10-балльная система)
   const saveGrade = async () => {
     if (!editValue || isNaN(editValue)) return;
     const numGrade = parseInt(editValue, 10);
-    if (numGrade < 0 || numGrade > 100) return;
+    if (numGrade < 1 || numGrade > 10) return;
 
     try {
       if (currentGradeTarget?.existing) {
@@ -161,6 +194,11 @@ export default function TeacherJournal() {
   // Добавить дату занятия
   const addLessonDate = async () => {
     if (!newDate) return;
+    if (isSunday(newDate)) {
+      setDateError('Нельзя добавить занятие на воскресенье');
+      return;
+    }
+    setDateError('');
     try {
       await api.post('/api/teacher/lesson-dates', {
         subject,
@@ -192,19 +230,23 @@ export default function TeacherJournal() {
   // Подсветка при наведении
   const getCellClass = (studentEmail, date) => {
     const isHovered = hoveredCell?.studentId === studentEmail && hoveredCell?.date === date;
+    const isRowHovered = hoveredRow === studentEmail;
+    const isColHovered = hoveredCol === date;
     const grade = getGrade(studentEmail, date);
     const attend = getAttendance(studentEmail, date);
 
     let cls = 'relative transition-colors cursor-pointer ';
-    if (isHovered) cls += 'bg-indigo-50 ';
+
+    if (isHovered) cls += 'bg-indigo-100 ring-2 ring-inset ring-indigo-300 ';
+    else if (isRowHovered || isColHovered) cls += 'bg-indigo-50/50 ';
 
     if (attend?.status === 'absent') cls += 'bg-red-50 ';
     else if (attend?.status === 'late') cls += 'bg-amber-50 ';
 
     if (grade) {
-      if (grade.grade >= 90) cls += 'text-emerald-700 font-bold ';
-      else if (grade.grade >= 75) cls += 'text-blue-700 font-bold ';
-      else if (grade.grade >= 60) cls += 'text-amber-700 font-bold ';
+      if (grade.grade >= 9) cls += 'text-emerald-700 font-bold ';
+      else if (grade.grade >= 7) cls += 'text-blue-700 font-bold ';
+      else if (grade.grade >= 4) cls += 'text-amber-700 font-bold ';
       else cls += 'text-red-700 font-bold ';
     }
 
@@ -215,6 +257,12 @@ export default function TeacherJournal() {
     let cls = 'transition-colors ';
     if (!student.is_active) cls += 'opacity-40 bg-gray-50 ';
     return cls;
+  };
+
+  // Определяем, новый ли студент (зарегистрирован менее 7 дней назад)
+  const isNewStudent = (student) => {
+    if (!student.created_at || !student.is_active) return false;
+    return new Date(student.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   };
 
   if (loading) {
@@ -254,16 +302,16 @@ export default function TeacherJournal() {
       <div className="card p-4 mb-4 bg-indigo-50 border-indigo-200">
         <div className="flex flex-wrap gap-4 text-sm">
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-red-100 border border-red-300" />
-            ПКМ — отсутствие
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-amber-100 border border-amber-300" />
-            СКМ — опоздание
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-indigo-100 border border-indigo-300" />
+            <span className="w-3 h-3 rounded bg-indigo-200 border border-indigo-400" />
             ЛКМ — оценка
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded bg-red-200 border border-red-400" />
+            ПКМ — отсутствие / опоздание
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded bg-amber-200 border border-amber-400" />
+            10-балльная система
           </span>
         </div>
       </div>
@@ -280,7 +328,11 @@ export default function TeacherJournal() {
                 {lessonDates.map((ld) => (
                   <th
                     key={ld.id}
-                    className="px-2 py-3 text-center text-sm font-semibold text-slate-600 border-b border-slate-200 min-w-[80px] group/th"
+                    className={`px-2 py-3 text-center text-sm font-semibold border-b border-slate-200 min-w-[80px] group/th transition-colors ${
+                      hoveredCol === ld.lesson_date ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600'
+                    }`}
+                    onMouseEnter={() => setHoveredCol(ld.lesson_date)}
+                    onMouseLeave={() => setHoveredCol(null)}
                   >
                     <div className="flex flex-col items-center gap-0.5">
                       <span className="text-xs text-slate-400">
@@ -308,22 +360,25 @@ export default function TeacherJournal() {
               {students.map((student) => {
                 const studentGrades = grades.filter(g => g.student_email === student.email);
                 const avg = studentGrades.length
-                  ? Math.round(studentGrades.reduce((s, g) => s + g.grade, 0) / studentGrades.length)
+                  ? (studentGrades.reduce((s, g) => s + g.grade, 0) / studentGrades.length).toFixed(1)
                   : null;
 
                 return (
                   <tr
                     key={student.id}
-                    className={`group/row hover:bg-indigo-50/30 ${getStudentRowClass(student)}`}
+                    className={`group/row ${getStudentRowClass(student)}`}
+                    onMouseEnter={() => setHoveredRow(student.email)}
+                    onMouseLeave={() => setHoveredRow(null)}
                   >
-                    <td className={`sticky left-0 z-10 px-4 py-2.5 text-sm border-b border-r border-slate-200 ${!student.is_active ? 'bg-gray-50' : 'bg-white group-hover/row:bg-indigo-50/30'} transition-colors`}>
+                    <td className={`sticky left-0 z-10 px-4 py-2.5 text-sm border-b border-r border-slate-200 transition-colors ${
+                      !student.is_active ? 'bg-gray-50' : (hoveredRow === student.email ? 'bg-indigo-50/30' : 'bg-white')
+                    }`}>
                       <div className="font-medium text-slate-900">{student.full_name}</div>
-                      {!student.is_active && (
+                      {!student.is_active ? (
                         <span className="text-xs text-red-500 font-medium">Отчислен</span>
-                      )}
-                      {student.created_at && new Date(student.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
-                        <span className="ml-1 text-xs text-emerald-500 font-medium">Новый</span>
-                      )}
+                      ) : isNewStudent(student) ? (
+                        <span className="text-xs text-emerald-500 font-medium">Новый</span>
+                      ) : null}
                     </td>
                     {lessonDates.map((ld) => {
                       const grade = getGrade(student.email, ld.lesson_date);
@@ -335,7 +390,6 @@ export default function TeacherJournal() {
                           onMouseEnter={() => setHoveredCell({ studentId: student.email, date: ld.lesson_date })}
                           onMouseLeave={() => setHoveredCell(null)}
                           onClick={(e) => handleCellClick(student, ld.lesson_date, e)}
-                          onMouseDown={(e) => handleCellMiddleClick(student, ld.lesson_date, e)}
                           onContextMenu={(e) => handleCellRightClick(student, ld.lesson_date, e)}
                         >
                           {grade ? (
@@ -352,7 +406,7 @@ export default function TeacherJournal() {
                     })}
                     <td className="px-4 py-2.5 text-center text-sm border-b border-slate-100">
                       {avg !== null ? (
-                        <span className={`font-bold ${avg >= 90 ? 'text-emerald-600' : avg >= 75 ? 'text-blue-600' : avg >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                        <span className={`font-bold ${avg >= 9 ? 'text-emerald-600' : avg >= 7 ? 'text-blue-600' : avg >= 4 ? 'text-amber-600' : 'text-red-600'}`}>
                           {avg}
                         </span>
                       ) : (
@@ -367,20 +421,50 @@ export default function TeacherJournal() {
         </div>
       </div>
 
+      {/* Контекстное меню для ячейки (ПКМ) */}
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="fixed z-50 bg-white rounded-xl shadow-xl border border-slate-200 py-2 min-w-[180px]"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button
+            onClick={() => markAbsent(contextMenu.student, contextMenu.date)}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 text-slate-700 hover:text-red-700 flex items-center gap-2 transition-colors"
+          >
+            <span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">Н</span>
+            Отсутствие
+          </button>
+          <button
+            onClick={() => markLate(contextMenu.student, contextMenu.date)}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-amber-50 text-slate-700 hover:text-amber-700 flex items-center gap-2 transition-colors"
+          >
+            <span className="w-4 h-4 rounded bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">О</span>
+            Опоздание
+          </button>
+        </div>
+      )}
+
       {/* Модальное окно добавления даты */}
       {showAddDate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAddDate(false)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => { setShowAddDate(false); setDateError(''); }}>
           <div className="card p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-slate-900 mb-4">Добавить занятие</h2>
+            {dateError && (
+              <div className="mb-3 p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{dateError}</div>
+            )}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Дата</label>
                 <input
                   type="date"
                   value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
+                  onChange={(e) => { setNewDate(e.target.value); setDateError(''); }}
                   className="input-field"
                 />
+                {isSunday(newDate) && (
+                  <p className="text-xs text-red-500 mt-1">Занятия в воскресенье не проводятся</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Тема</label>
@@ -405,15 +489,15 @@ export default function TeacherJournal() {
                 </select>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={addLessonDate} className="btn-primary flex-1">Добавить</button>
-                <button onClick={() => setShowAddDate(false)} className="btn-ghost flex-1">Отмена</button>
+                <button onClick={addLessonDate} className="btn-primary flex-1 flex items-center justify-center gap-2">Добавить</button>
+                <button onClick={() => { setShowAddDate(false); setDateError(''); }} className="btn-ghost flex-1 flex items-center justify-center gap-2">Отмена</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Модальное окно оценки */}
+      {/* Модальное окно оценки (10-балльная) */}
       {showGradeModal && currentGradeTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowGradeModal(false)}>
           <div className="card p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
@@ -425,11 +509,11 @@ export default function TeacherJournal() {
             </p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Оценка (0–100)</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Оценка (1–10)</label>
                 <input
                   type="number"
-                  min="0"
-                  max="100"
+                  min="1"
+                  max="10"
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
                   className="input-field text-center text-2xl font-bold"
@@ -437,6 +521,10 @@ export default function TeacherJournal() {
                   autoFocus
                   onKeyDown={(e) => { if (e.key === 'Enter') saveGrade(); }}
                 />
+                <div className="flex justify-between mt-1 text-xs text-slate-400">
+                  <span>1 — неудовл.</span>
+                  <span>10 — отлично</span>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Комментарий</label>
@@ -449,15 +537,15 @@ export default function TeacherJournal() {
                 />
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={saveGrade} className="btn-primary flex-1">
+                <button onClick={saveGrade} className="btn-primary flex-1 flex items-center justify-center gap-2">
                   {currentGradeTarget.existing ? 'Сохранить' : 'Выставить'}
                 </button>
                 {currentGradeTarget.existing && (
-                  <button onClick={deleteGrade} className="btn-danger">
+                  <button onClick={deleteGrade} className="btn-danger flex items-center justify-center gap-2">
                     Удалить
                   </button>
                 )}
-                <button onClick={() => setShowGradeModal(false)} className="btn-ghost">Отмена</button>
+                <button onClick={() => setShowGradeModal(false)} className="btn-ghost flex items-center justify-center gap-2">Отмена</button>
               </div>
             </div>
           </div>

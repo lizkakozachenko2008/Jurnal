@@ -49,18 +49,18 @@ class TeacherService {
     return Journal.removeLessonDate(id);
   }
 
-  // Выставить оценку
+  // Выставить оценку (10-балльная система)
   static async setGrade(data) {
-    if (data.grade < 0 || data.grade > 100) {
-      throw new Error('Оценка должна быть от 0 до 100');
+    if (data.grade < 1 || data.grade > 10) {
+      throw new Error('Оценка должна быть от 1 до 10');
     }
     return Journal.setGrade(data);
   }
 
-  // Обновить оценку
+  // Обновить оценку (10-балльная система)
   static async updateGrade(id, data) {
-    if (data.grade !== undefined && (data.grade < 0 || data.grade > 100)) {
-      throw new Error('Оценка должна быть от 0 до 100');
+    if (data.grade !== undefined && (data.grade < 1 || data.grade > 10)) {
+      throw new Error('Оценка должна быть от 1 до 10');
     }
     return Journal.updateGrade(id, data);
   }

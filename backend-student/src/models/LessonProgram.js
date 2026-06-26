@@ -26,17 +26,18 @@ class LessonProgram {
   }
 
   // Обновить занятие
-  static async update(id, { lessonType, topic, description, materials }) {
+  static async update(id, { lessonType, topic, description, materials, materials_file }) {
     const query = `
       UPDATE lesson_programs
       SET lesson_type = COALESCE($1, lesson_type),
           topic = COALESCE($2, topic),
           description = COALESCE($3, description),
-          materials = COALESCE($4, materials)
-      WHERE id = $5
+          materials = COALESCE($4, materials),
+          materials_file = COALESCE($5, materials_file)
+      WHERE id = $6
       RETURNING *
     `;
-    const result = await pool.query(query, [lessonType, topic, description, materials, id]);
+    const result = await pool.query(query, [lessonType, topic, description, materials, materials_file, id]);
     return result.rows[0];
   }
 
