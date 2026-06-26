@@ -1,4 +1,5 @@
 const TeacherService = require('../services/teacherService');
+const LessonProgram = require('../models/LessonProgram');
 
 class TeacherController {
   // === ЖУРНАЛ ===
@@ -350,6 +351,22 @@ class TeacherController {
       next(error);
     }
   }
-}
+
+  // Загрузить PDF к занятию программы
+  async uploadProgramFile(req, res, next) {
+    try {
+      const { id } = req.params;
+      if (!req.file) {
+        return res.status(400).json({ success: false, error: 'Файл не загружен' });
+      }
+      const filePath = '/uploads/programs/' + req.file.filename;
+      await LessonProgram.update(id, { materials_file: filePath });
+      res.json({ success: true, data: { file_url: filePath } });
+    } catch (error) {
+      next(error);
+    }
+  }
+};
 
 module.exports = new TeacherController();
+

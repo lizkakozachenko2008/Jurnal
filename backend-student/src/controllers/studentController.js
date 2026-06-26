@@ -62,17 +62,42 @@ class StudentController {
     try {
       const { id } = req.params;
       const labWork = await StudentService.getLabWorkDetails(id);
-      
+
       if (!labWork) {
         return res.status(404).json({
           success: false,
           error: 'Лабораторная работа не найдена'
         });
       }
-      
+
       res.json({
         success: true,
         data: labWork
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Сдать лабораторную работу (с файлом)
+  async submitLabWork(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { solution_text, team_name } = req.body;
+      const fileUrl = req.file ? '/uploads/labs/' + req.file.filename : null;
+
+      const submission = await StudentService.submitLabWork({
+        labWorkId: id,
+        studentEmail: req.user.email,
+        studentName: req.user.fullName,
+        solutionText: solution_text || null,
+        teamName: team_name || null,
+        fileUrl,
+      });
+
+      res.status(201).json({
+        success: true,
+        data: submission,
       });
     } catch (error) {
       next(error);

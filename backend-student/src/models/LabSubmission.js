@@ -50,6 +50,19 @@ class LabSubmission {
     return result.rows[0];
   }
 
+  // Создать сдачу лабораторной работы
+  static async createSubmission({ labWorkId, studentEmail, studentName, solutionText, teamName, fileUrl }) {
+    const query = `
+      INSERT INTO lab_submissions (lab_work_id, student_email, student_name, solution_text, team_name, file_url, status)
+      VALUES ($1, $2, $3, $4, $5, $6, 'submitted')
+      RETURNING *
+    `;
+    const result = await pool.query(query, [
+      labWorkId, studentEmail, studentName, solutionText || null, teamName || null, fileUrl || null
+    ]);
+    return result.rows[0];
+  }
+
   // Получить сдачи по лабораторной работе
   static async getSubmissions(labWorkId) {
     const query = `
