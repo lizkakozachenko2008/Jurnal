@@ -129,10 +129,10 @@ export default function TeacherJournal() {
   };
 
   // Отметить опоздание через контекстное меню
-  const markLate = async (student, date) => {
+  const markLate = async (student, date, minutes = 15) => {
     const existing = getAttendance(student.email, date);
     const newStatus = existing?.status === 'late' ? 'present' : 'late';
-    const minutesLate = newStatus === 'late' ? 15 : 0;
+    const minutesLate = newStatus === 'late' ? minutes : 0;
     try {
       await api.post('/api/teacher/attendance', {
         studentEmail: student.email,
@@ -144,6 +144,7 @@ export default function TeacherJournal() {
       });
       await fetchJournal();
     } catch (err) {
+      alert('Ошибка: ' + (err.response?.data?.error || err.message));
       console.error('Ошибка отметки опоздания:', err);
     }
     setContextMenu(null);
@@ -151,9 +152,15 @@ export default function TeacherJournal() {
 
   // Сохранить оценку (10-балльная система)
   const saveGrade = async () => {
-    if (!editValue || isNaN(editValue)) return;
+    if (!editValue || isNaN(editValue)) {
+      alert('Введите оценку от 1 до 10');
+      return;
+    }
     const numGrade = parseInt(editValue, 10);
-    if (numGrade < 1 || numGrade > 10) return;
+    if (numGrade < 1 || numGrade > 10) {
+      alert('Оценка должна быть от 1 до 10');
+      return;
+    }
 
     try {
       if (currentGradeTarget?.existing) {
@@ -175,6 +182,7 @@ export default function TeacherJournal() {
       setShowGradeModal(false);
       await fetchJournal();
     } catch (err) {
+      alert('Ошибка сохранения: ' + (err.response?.data?.error || err.message));
       console.error('Ошибка сохранения оценки:', err);
     }
   };
@@ -188,6 +196,42 @@ export default function TeacherJournal() {
       await fetchJournal();
     } catch (err) {
       console.error('Ошибка удаления оценки:', err);
+    }
+  };
+
+  // Быстрое добавление урока на ближайший день недели
+  const addQuickLesson = async () => {
+    const dayName = prompt('Введите день недели (1=Пн, 2=Вт, 3=Ср, 4=Чт, 5=Пт, 6=Сб):');
+    const dayNum = parseInt(dayName, 10);
+    if (isNaN(dayNum) || dayNum < 1 || dayNum > 6) {
+      if (dayName !== null) alert('Введите число от 1 до 6');
+      return;
+    }
+    const topic = prompt('Тема занятия:');
+    if (!topic) return;
+
+    // Найти ближайшую дату на этот день недели
+    const today = new Date();
+    const currentDay = today.getDay() === 0 ? 7 : today.getDay();
+    let daysUntil = dayNum - currentDay;
+    if (daysUntil <= 0) daysUntil += 7;
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysUntil);
+    const dateStr = targetDate.toISOString().split('T')[0];
+
+    try {
+      await api.post('/api/teacher/lesson-dates', {
+        subject,
+        groupName,
+        lessonDate: dateStr,
+        topic,
+        lessonType: 'lecture',
+        teacherEmail: '',
+      });
+      await fetchJournal();
+      alert(`Занятие "${topic}" добавлено на ${targetDate.toLocaleDateString('ru-RU')}`);
+    } catch (err) {
+      alert('Ошибка: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -290,12 +334,20 @@ export default function TeacherJournal() {
           <h1 className="text-2xl font-bold text-slate-900">{subject}</h1>
           <p className="text-slate-500">Группа: {groupName}</p>
         </div>
-        <button onClick={() => setShowAddDate(true)} className="btn-primary">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Добавить занятие
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowAddDate(true)} className="btn-primary flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Добавить занятие
+          </button>
+          <button onClick={addQuickLesson} className="btn-ghost flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Быстрое добавление
+          </button>
+        </div>
       </div>
 
       {/* Подсказки */}
@@ -397,7 +449,7 @@ export default function TeacherJournal() {
                           ) : attend?.status === 'absent' ? (
                             <span className="text-red-500 font-bold">Н</span>
                           ) : attend?.status === 'late' ? (
-                            <span className="text-amber-500 font-bold">О</span>
+                            <span className="text-amber-500 font-bold" title={`Опоздание на ${attend.minutes_late} мин`}>О{attend.minutes_late > 0 ? attend.minutes_late : ''}</span>
                           ) : (
                             <span className="text-slate-300">—</span>
                           )}
@@ -425,7 +477,7 @@ export default function TeacherJournal() {
       {contextMenu && (
         <div
           ref={contextMenuRef}
-          className="fixed z-50 bg-white rounded-xl shadow-xl border border-slate-200 py-2 min-w-[180px]"
+          className="fixed z-50 bg-white rounded-xl shadow-xl border border-slate-200 py-2 min-w-[200px]"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
           <button
@@ -435,12 +487,34 @@ export default function TeacherJournal() {
             <span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">Н</span>
             Отсутствие
           </button>
+          <div className="border-t border-slate-100 my-1" />
           <button
-            onClick={() => markLate(contextMenu.student, contextMenu.date)}
+            onClick={() => markLate(contextMenu.student, contextMenu.date, 5)}
             className="w-full px-4 py-2 text-left text-sm hover:bg-amber-50 text-slate-700 hover:text-amber-700 flex items-center gap-2 transition-colors"
           >
             <span className="w-4 h-4 rounded bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">О</span>
-            Опоздание
+            Опоздание (5 мин)
+          </button>
+          <button
+            onClick={() => markLate(contextMenu.student, contextMenu.date, 10)}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-amber-50 text-slate-700 hover:text-amber-700 flex items-center gap-2 transition-colors"
+          >
+            <span className="w-4 h-4 rounded bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">О</span>
+            Опоздание (10 мин)
+          </button>
+          <button
+            onClick={() => markLate(contextMenu.student, contextMenu.date, 15)}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-amber-50 text-slate-700 hover:text-amber-700 flex items-center gap-2 transition-colors"
+          >
+            <span className="w-4 h-4 rounded bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">О</span>
+            Опоздание (15 мин)
+          </button>
+          <button
+            onClick={() => markLate(contextMenu.student, contextMenu.date, 30)}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-amber-50 text-slate-700 hover:text-amber-700 flex items-center gap-2 transition-colors"
+          >
+            <span className="w-4 h-4 rounded bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">О</span>
+            Опоздание (30 мин)
           </button>
         </div>
       )}

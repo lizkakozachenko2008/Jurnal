@@ -79,6 +79,17 @@ class StudentController {
     }
   }
 
+  // Получить собственную сдачу по лабораторной
+  async getMySubmission(req, res, next) {
+    try {
+      const { id } = req.params;
+      const submission = await StudentService.getMySubmission(id, req.user.email);
+      res.json({ success: true, data: submission });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Сдать лабораторную работу (с файлом)
   async submitLabWork(req, res, next) {
     try {

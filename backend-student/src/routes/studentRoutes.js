@@ -11,6 +11,7 @@ router.get('/grades', studentController.getGrades);
 router.get('/grades/:subject', studentController.getSubjectGrades);
 router.get('/lab-works', studentController.getLabWorks);
 router.get('/lab-works/:id', studentController.getLabWorkDetails);
+router.get('/lab-works/:id/my-submission', studentController.getMySubmission);
 router.post('/lab-works/:id/submit', uploadLab, studentController.submitLabWork);
 
 module.exports = router;

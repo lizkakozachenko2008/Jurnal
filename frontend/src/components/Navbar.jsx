@@ -11,8 +11,10 @@ export default function Navbar() {
     navigate('/login');
   };
 
-  const navLink = (to, label) => {
-    const isActive = location.pathname === to || location.pathname.startsWith(to + '/');
+  const navLink = (to, label, exact = false) => {
+    const isActive = exact
+      ? location.pathname === to
+      : location.pathname === to || location.pathname.startsWith(to + '/');
     return (
       <Link
         to={to}
@@ -47,7 +49,7 @@ export default function Navbar() {
             <div className="hidden sm:flex gap-1">
               {isTeacher ? (
                 <>
-                  {navLink('/teacher', 'Главная')}
+                  {navLink('/teacher', 'Главная', true)}
                   {navLink('/teacher/schedule', 'Расписание')}
                   {navLink('/teacher/lab-works', 'Лабораторные')}
                   {navLink('/teacher/programs', 'Программы')}
@@ -55,7 +57,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  {navLink('/', 'Главная')}
+                  {navLink('/', 'Главная', true)}
                   {navLink('/schedule', 'Расписание')}
                   {navLink('/grades', 'Оценки')}
                   {navLink('/lab-works', 'Лабораторные')}

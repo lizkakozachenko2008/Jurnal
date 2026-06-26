@@ -24,6 +24,10 @@ class StudentService {
     return LabWork.findById(id);
   }
 
+  static async getMySubmission(labWorkId, studentEmail) {
+    return LabSubmission.findByStudent(labWorkId, studentEmail);
+  }
+
   static async submitLabWork({ labWorkId, studentEmail, studentName, solutionText, teamName, fileUrl }) {
     return LabSubmission.createSubmission({
       labWorkId,
