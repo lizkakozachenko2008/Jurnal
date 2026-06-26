@@ -199,21 +199,30 @@ export default function TeacherJournal() {
     }
   };
 
-  // Быстрое добавление урока на ближайший день недели
+  // Быстрое добавление урока — состояние модалки
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickDay, setQuickDay] = useState(1);
+  const [quickTopic, setQuickTopic] = useState('');
+  const [quickType, setQuickType] = useState('lecture');
+
+  const DAYS = [
+    { value: 1, label: 'Понедельник' },
+    { value: 2, label: 'Вторник' },
+    { value: 3, label: 'Среда' },
+    { value: 4, label: 'Четверг' },
+    { value: 5, label: 'Пятница' },
+    { value: 6, label: 'Суббота' },
+  ];
+
   const addQuickLesson = async () => {
-    const dayName = prompt('Введите день недели (1=Пн, 2=Вт, 3=Ср, 4=Чт, 5=Пт, 6=Сб):');
-    const dayNum = parseInt(dayName, 10);
-    if (isNaN(dayNum) || dayNum < 1 || dayNum > 6) {
-      if (dayName !== null) alert('Введите число от 1 до 6');
+    if (!quickTopic.trim()) {
+      alert('Введите тему занятия');
       return;
     }
-    const topic = prompt('Тема занятия:');
-    if (!topic) return;
-
-    // Найти ближайшую дату на этот день недели
+    // Найти ближайшую дату на выбранный день недели
     const today = new Date();
     const currentDay = today.getDay() === 0 ? 7 : today.getDay();
-    let daysUntil = dayNum - currentDay;
+    let daysUntil = quickDay - currentDay;
     if (daysUntil <= 0) daysUntil += 7;
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + daysUntil);
@@ -224,12 +233,14 @@ export default function TeacherJournal() {
         subject,
         groupName,
         lessonDate: dateStr,
-        topic,
-        lessonType: 'lecture',
-        teacherEmail: '',
+        topic: quickTopic,
+        lessonType: quickType,
       });
       await fetchJournal();
-      alert(`Занятие "${topic}" добавлено на ${targetDate.toLocaleDateString('ru-RU')}`);
+      setShowQuickAdd(false);
+      setQuickTopic('');
+      setQuickDay(1);
+      setQuickType('lecture');
     } catch (err) {
       alert('Ошибка: ' + (err.response?.data?.error || err.message));
     }
@@ -620,6 +631,61 @@ export default function TeacherJournal() {
                   </button>
                 )}
                 <button onClick={() => setShowGradeModal(false)} className="btn-ghost flex items-center justify-center gap-2">Отмена</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно быстрого добавления урока на день недели */}
+      {showQuickAdd && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowQuickAdd(false)}>
+          <div className="card p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-slate-900 mb-4">Быстрое добавление урока</h2>
+            <p className="text-sm text-slate-500 mb-4">Урок будет добавлен на ближайший выбранный день недели</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">День недели</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {DAYS.map(day => (
+                    <button
+                      key={day.value}
+                      onClick={() => setQuickDay(day.value)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        quickDay === day.value
+                          ? 'bg-indigo-600 text-white shadow-lg'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {day.label.slice(0, 2)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Тема занятия</label>
+                <input
+                  type="text"
+                  value={quickTopic}
+                  onChange={(e) => setQuickTopic(e.target.value)}
+                  className="input-field"
+                  placeholder="Введите тему"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter') addQuickLesson(); }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Тип</label>
+                <select value={quickType} onChange={(e) => setQuickType(e.target.value)} className="input-field">
+                  <option value="lecture">Лекция</option>
+                  <option value="practice">Практика</option>
+                  <option value="lab">Лабораторная</option>
+                  <option value="test">Контрольная</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={addQuickLesson} className="btn-primary flex-1 flex items-center justify-center gap-2">Добавить</button>
+                <button onClick={() => setShowQuickAdd(false)} className="btn-ghost flex-1 flex items-center justify-center gap-2">Отмена</button>
               </div>
             </div>
           </div>

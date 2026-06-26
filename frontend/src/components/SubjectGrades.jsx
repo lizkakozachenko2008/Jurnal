@@ -27,16 +27,16 @@ export default function SubjectGrades() {
     : 0;
 
   const getGradeColor = (grade) => {
-    if (grade >= 90) return 'text-emerald-600';
-    if (grade >= 75) return 'text-blue-600';
-    if (grade >= 60) return 'text-amber-600';
+    if (grade >= 9) return 'text-emerald-600';
+    if (grade >= 7) return 'text-blue-600';
+    if (grade >= 4) return 'text-amber-600';
     return 'text-red-600';
   };
 
   const getGradeBadge = (grade) => {
-    if (grade >= 90) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    if (grade >= 75) return 'bg-blue-50 text-blue-700 border-blue-200';
-    if (grade >= 60) return 'bg-amber-50 text-amber-700 border-amber-200';
+    if (grade >= 9) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (grade >= 7) return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (grade >= 4) return 'bg-amber-50 text-amber-700 border-amber-200';
     return 'bg-red-50 text-red-700 border-red-200';
   };
 
@@ -84,8 +84,8 @@ export default function SubjectGrades() {
         <div className="card overflow-hidden">
           <div className="w-full bg-slate-100 h-2">
             <div
-              className={`h-2 transition-all ${avg >= 90 ? 'bg-emerald-500' : avg >= 75 ? 'bg-blue-500' : avg >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
-              style={{ width: `${Math.min(avg, 100)}%` }}
+              className={`h-2 transition-all ${avg >= 9 ? 'bg-emerald-500' : avg >= 7 ? 'bg-blue-500' : avg >= 4 ? 'bg-amber-500' : 'bg-red-500'}`}
+              style={{ width: `${Math.min(avg * 10, 100)}%` }}
             />
           </div>
           <table className="w-full">

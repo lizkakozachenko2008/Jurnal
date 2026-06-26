@@ -126,7 +126,7 @@ export default function TeacherLabWorks() {
                     <div className="text-sm text-slate-500 flex items-center gap-3">
                       <span className="bg-slate-100 px-2 py-0.5 rounded-md text-xs font-medium">{lab.subject}</span>
                       <span>Дедлайн: {new Date(lab.due_date).toLocaleDateString('ru-RU')}</span>
-                      <span>Макс: {lab.max_score} баллов</span>
+                      <span>Макс: {lab.max_score}/10</span>
                     </div>
                     {lab.description && (
                       <p className="text-sm text-slate-600 mt-2">{lab.description}</p>
