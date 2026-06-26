@@ -29,16 +29,16 @@ export default function Grades() {
   }, {});
 
   const getGradeColor = (grade) => {
-    if (grade >= 90) return 'text-emerald-700 bg-emerald-50 border-emerald-200';
-    if (grade >= 75) return 'text-blue-700 bg-blue-50 border-blue-200';
-    if (grade >= 60) return 'text-amber-700 bg-amber-50 border-amber-200';
+    if (grade >= 9) return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+    if (grade >= 7) return 'text-blue-700 bg-blue-50 border-blue-200';
+    if (grade >= 4) return 'text-amber-700 bg-amber-50 border-amber-200';
     return 'text-red-700 bg-red-50 border-red-200';
   };
 
   const getProgressColor = (grade) => {
-    if (grade >= 90) return 'bg-emerald-500';
-    if (grade >= 75) return 'bg-blue-500';
-    if (grade >= 60) return 'bg-amber-500';
+    if (grade >= 9) return 'bg-emerald-500';
+    if (grade >= 7) return 'bg-blue-500';
+    if (grade >= 4) return 'bg-amber-500';
     return 'bg-red-500';
   };
 
@@ -101,7 +101,7 @@ export default function Grades() {
                 <div className="w-full bg-slate-100 rounded-full h-2 mb-4">
                   <div
                     className={`h-2 rounded-full transition-all ${getProgressColor(avg)}`}
-                    style={{ width: `${Math.min(avg, 100)}%` }}
+                    style={{ width: `${Math.min(avg * 10, 100)}%` }}
                   />
                 </div>
 
