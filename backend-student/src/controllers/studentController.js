@@ -114,6 +114,16 @@ class StudentController {
       next(error);
     }
   }
+
+  // Получить уведомления (новые оценки и комментарии)
+  async getNotifications(req, res, next) {
+    try {
+      const notifications = await StudentService.getNotifications(req.user.email);
+      res.json({ success: true, data: notifications });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new StudentController();

@@ -14,6 +14,7 @@ export default function LabWorks() {
   const [submitFile, setSubmitFile] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const fetchLabWorks = useCallback(async () => {
     try {
@@ -45,6 +46,15 @@ export default function LabWorks() {
 
   const handleSubmit = async () => {
     if (!showSubmit) return;
+    setSubmitError('');
+    if (!submitText.trim() && !submitFile) {
+      setSubmitError('Добавьте решение или прикрепите файл');
+      return;
+    }
+    if (submitFile && submitFile.size > 10 * 1024 * 1024) {
+      setSubmitError('Файл слишком большой (макс. 10 МБ)');
+      return;
+    }
     setSubmitLoading(true);
     try {
       const formData = new FormData();
@@ -56,7 +66,6 @@ export default function LabWorks() {
       });
 
       setSubmitSuccess(true);
-      // Обновить статус сдачи
       const subRes = await api.get(`/api/student/lab-works/${showSubmit.id}/my-submission`);
       setSubmissions(s => ({ ...s, [showSubmit.id]: subRes.data.data }));
       setTimeout(() => {
@@ -64,9 +73,10 @@ export default function LabWorks() {
         setSubmitText('');
         setSubmitFile(null);
         setSubmitSuccess(false);
+        setSubmitError('');
       }, 2000);
     } catch (err) {
-      alert('Ошибка при сдаче работы: ' + (err.response?.data?.error || err.message));
+      setSubmitError('Ошибка: ' + (err.response?.data?.error || err.message));
     } finally {
       setSubmitLoading(false);
     }
@@ -223,6 +233,9 @@ export default function LabWorks() {
           <div className="card p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-slate-900 mb-1">Сдать работу</h2>
             <p className="text-sm text-slate-500 mb-4">{showSubmit.title}</p>
+            {submitError && (
+              <div className="mb-3 p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{submitError}</div>
+            )}
 
             {submitSuccess ? (
               <div className="text-center py-8">

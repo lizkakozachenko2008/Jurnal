@@ -8,6 +8,7 @@ export default function TeacherSubmissions() {
   const [checkingId, setCheckingId] = useState(null);
   const [checkScore, setCheckScore] = useState('');
   const [checkComment, setCheckComment] = useState('');
+  const [checkError, setCheckError] = useState('');
 
   const fetchSubmissions = async () => {
     try {
@@ -32,12 +33,14 @@ export default function TeacherSubmissions() {
     setCheckingId(sub.id);
     setCheckScore(sub.score !== null ? String(sub.score) : '');
     setCheckComment(sub.teacher_comment || '');
+    setCheckError('');
   };
 
   const saveCheck = async (id, maxScore) => {
+    setCheckError('');
     const score = checkScore !== '' ? parseInt(checkScore, 10) : null;
     if (score !== null && (score < 1 || score > 10)) {
-      alert('Оценка должна быть от 1 до 10');
+      setCheckError('Оценка должна быть от 1 до 10');
       return;
     }
     try {
@@ -48,7 +51,7 @@ export default function TeacherSubmissions() {
       setCheckingId(null);
       await fetchSubmissions();
     } catch (err) {
-      alert('Ошибка сохранения: ' + (err.response?.data?.error || err.message));
+      setCheckError('Ошибка: ' + (err.response?.data?.error || err.message));
       console.error('Ошибка проверки:', err);
     }
   };
@@ -174,6 +177,9 @@ export default function TeacherSubmissions() {
               {/* Форма проверки */}
               {checkingId === sub.id && (
                 <div className="mt-4 pt-4 border-t border-slate-100">
+                  {checkError && (
+                    <div className="mb-3 p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{checkError}</div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1">

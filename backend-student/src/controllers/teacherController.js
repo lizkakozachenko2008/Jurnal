@@ -352,6 +352,16 @@ class TeacherController {
     }
   }
 
+  // Уведомления (новые сдачи лабораторных)
+  async getNotifications(req, res, next) {
+    try {
+      const notifications = await TeacherService.getNotifications(req.user.email);
+      res.json({ success: true, data: notifications });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Загрузить PDF к занятию программы
   async uploadProgramFile(req, res, next) {
     try {

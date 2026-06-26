@@ -175,6 +175,28 @@ class TeacherService {
   static async setStudentActive(id, isActive) {
     return User.setActive(id, isActive);
   }
+
+  // Уведомления для преподавателя (новые сдачи лабораторных)
+  static async getNotifications(teacherEmail) {
+    const recentSubmissions = await LabSubmission.getRecentSubmissions(teacherEmail, 7);
+    const notifications = [];
+
+    for (const sub of recentSubmissions) {
+      notifications.push({
+        id: `sub_${sub.id}`,
+        type: 'submission',
+        message: `${sub.student_name} сдал(а) работу "${sub.lab_title}"`,
+        date: sub.submitted_at,
+        student_name: sub.student_name,
+        lab_title: sub.lab_title,
+        subject: sub.subject,
+        read: false,
+      });
+    }
+
+    notifications.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return notifications;
+  }
 }
 
 module.exports = TeacherService;

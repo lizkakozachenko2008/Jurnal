@@ -12,6 +12,16 @@ class Grade {
     const result = await pool.query(query, [email, subject]);
     return result.rows;
   }
+
+  static async findRecentByStudent(email, days) {
+    const query = `
+      SELECT * FROM grades
+      WHERE student_email = $1 AND date >= CURRENT_DATE - INTERVAL '${days} days'
+      ORDER BY date DESC
+    `;
+    const result = await pool.query(query, [email]);
+    return result.rows;
+  }
 }
 
 module.exports = Grade;
