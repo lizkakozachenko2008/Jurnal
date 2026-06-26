@@ -105,6 +105,22 @@ export default function TeacherPrograms() {
     }
   };
 
+  // Загрузить PDF к существующему занятию
+  const uploadFileToLesson = async (lessonId, file) => {
+    if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      await api.post(`/api/teacher/programs/${lessonId}/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const { data } = await api.get(`/api/teacher/programs/${encodeURIComponent(selectedSubject)}`);
+      setProgram(data.data);
+    } catch (err) {
+      console.error('Ошибка загрузки файла:', err);
+    }
+  };
+
   const getLessonTypeLabel = (type) => {
     return LESSON_TYPES.find(t => t.value === type)?.label || type;
   };
@@ -244,6 +260,23 @@ export default function TeacherPrograms() {
                       {lesson.materials && (
                         <p className="text-xs text-slate-400 mt-1">📎 {lesson.materials}</p>
                       )}
+                      {/* Кнопка загрузки файла */}
+                      <div className="mt-2">
+                        <label className="cursor-pointer text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files[0]) {
+                                uploadFileToLesson(lesson.id, e.target.files[0]);
+                              }
+                              e.target.value = '';
+                            }}
+                          />
+                          📎 Загрузить материалы
+                        </label>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
