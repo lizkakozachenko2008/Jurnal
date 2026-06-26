@@ -109,7 +109,7 @@ export default function SubjectGrades() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-sm text-slate-500">
-                    {grade.grade_type || '—'}
+                    {grade.grade_type === 'lecture' ? 'Лекция' : grade.grade_type === 'practice' ? 'Практика' : grade.grade_type === 'lab' ? 'Лабораторная' : grade.grade_type === 'test' ? 'Контрольная' : grade.grade_type === 'exam' ? 'Экзамен' : grade.grade_type === 'quiz' ? 'Опрос' : '—'}
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="w-24 bg-slate-100 rounded-full h-2">

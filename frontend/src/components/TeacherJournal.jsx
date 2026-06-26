@@ -69,14 +69,20 @@ export default function TeacherJournal() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Нормализация даты к YYYY-MM-DD
+  const normDate = (d) => {
+    if (!d) return '';
+    return typeof d === 'string' ? d.split('T')[0] : new Date(d).toISOString().split('T')[0];
+  };
+
   // Получить оценку студента на дату
   const getGrade = (studentEmail, date) => {
-    return grades.find(g => g.student_email === studentEmail && g.date === date);
+    return grades.find(g => g.student_email === studentEmail && normDate(g.date) === normDate(date));
   };
 
   // Получить посещаемость студента на дату
   const getAttendance = (studentEmail, date) => {
-    return attendance.find(a => a.student_email === studentEmail && a.lesson_date === date);
+    return attendance.find(a => a.student_email === studentEmail && normDate(a.lesson_date) === normDate(date));
   };
 
   // Проверка на воскресенье
@@ -213,6 +219,10 @@ export default function TeacherJournal() {
     { value: 5, label: 'Пятница' },
     { value: 6, label: 'Суббота' },
   ];
+
+  const openQuickAdd = () => {
+    setShowQuickAdd(true);
+  };
 
   const addQuickLesson = async () => {
     if (!quickTopic.trim()) {
@@ -352,7 +362,7 @@ export default function TeacherJournal() {
             </svg>
             Добавить занятие
           </button>
-          <button onClick={addQuickLesson} className="btn-ghost flex items-center gap-2">
+          <button onClick={openQuickAdd} className="btn-ghost flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
