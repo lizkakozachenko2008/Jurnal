@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 
 export default function LabWorks() {
@@ -6,6 +6,7 @@ export default function LabWorks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  const [submissions, setSubmissions] = useState({}); // { labWorkId: submission }
 
   // Модальное окно сдачи
   const [showSubmit, setShowSubmit] = useState(null); // lab work object
@@ -14,19 +15,31 @@ export default function LabWorks() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  useEffect(() => {
-    const fetchLabWorks = async () => {
-      try {
-        const { data } = await api.get('/api/student/lab-works');
-        setLabWorks(data.data);
-      } catch (err) {
-        setError('Не удалось загрузить лабораторные работы');
-      } finally {
-        setLoading(false);
+  const fetchLabWorks = useCallback(async () => {
+    try {
+      const { data } = await api.get('/api/student/lab-works');
+      setLabWorks(data.data);
+      // Загрузить сдачи для каждой лабораторной
+      const subs = {};
+      for (const lab of data.data) {
+        try {
+          const subRes = await api.get(`/api/student/lab-works/${lab.id}/my-submission`);
+          if (subRes.data.data) {
+            subs[lab.id] = subRes.data.data;
+          }
+        } catch (e) { /* нет сдачи */ }
       }
-    };
-    fetchLabWorks();
+      setSubmissions(subs);
+    } catch (err) {
+      setError('Не удалось загрузить лабораторные работы');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchLabWorks();
+  }, [fetchLabWorks]);
 
   const isOverdue = (dueDate) => new Date(dueDate) < new Date();
 
@@ -43,6 +56,9 @@ export default function LabWorks() {
       });
 
       setSubmitSuccess(true);
+      // Обновить статус сдачи
+      const subRes = await api.get(`/api/student/lab-works/${showSubmit.id}/my-submission`);
+      setSubmissions(s => ({ ...s, [showSubmit.id]: subRes.data.data }));
       setTimeout(() => {
         setShowSubmit(null);
         setSubmitText('');
@@ -148,17 +164,50 @@ export default function LabWorks() {
                       <p className="text-xs text-slate-400 mt-2">📎 Теоретические материалы: {lab.theory_materials}</p>
                     )}
 
-                    {/* Кнопка сдачи */}
+                    {/* Статус сдачи или кнопка */}
                     <div className="mt-4 pt-3 border-t border-slate-100">
-                      <button
-                        onClick={() => { setShowSubmit(lab); setSubmitSuccess(false); }}
-                        className="btn-primary flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                        Сдать работу
-                      </button>
+                      {submissions[lab.id] ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              submissions[lab.id].status === 'checked'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {submissions[lab.id].status === 'checked' ? 'Проверено' : 'Ожидает проверки'}
+                            </span>
+                            {submissions[lab.id].score !== null && (
+                              <span className={`text-sm font-bold ${
+                                submissions[lab.id].score >= 9 ? 'text-emerald-600' :
+                                submissions[lab.id].score >= 7 ? 'text-blue-600' :
+                                submissions[lab.id].score >= 4 ? 'text-amber-600' : 'text-red-600'
+                              }`}>
+                                {submissions[lab.id].score}/10
+                              </span>
+                            )}
+                          </div>
+                          {submissions[lab.id].file_url && (
+                            <a href={`http://localhost:5000${submissions[lab.id].file_url}`} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:text-indigo-700">
+                              📎 Ваш прикреплённый файл
+                            </a>
+                          )}
+                          {submissions[lab.id].teacher_comment && (
+                            <div className="text-xs text-slate-600 bg-indigo-50 rounded-lg p-2">
+                              <strong>Комментарий преподавателя:</strong> {submissions[lab.id].teacher_comment}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => { setShowSubmit(lab); setSubmitSuccess(false); }}
+                          className="btn-primary flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                          Сдать работу
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

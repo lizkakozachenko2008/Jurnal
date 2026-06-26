@@ -50,6 +50,18 @@ class LabSubmission {
     return result.rows[0];
   }
 
+  // Найти сдачу студента по лабораторной
+  static async findByStudent(labWorkId, studentEmail) {
+    const query = `
+      SELECT * FROM lab_submissions
+      WHERE lab_work_id = $1 AND student_email = $2
+      ORDER BY submitted_at DESC
+      LIMIT 1
+    `;
+    const result = await pool.query(query, [labWorkId, studentEmail]);
+    return result.rows[0] || null;
+  }
+
   // Создать сдачу лабораторной работы
   static async createSubmission({ labWorkId, studentEmail, studentName, solutionText, teamName, fileUrl }) {
     const query = `

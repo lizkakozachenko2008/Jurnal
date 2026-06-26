@@ -36,8 +36,8 @@ export default function TeacherSubmissions() {
 
   const saveCheck = async (id, maxScore) => {
     const score = checkScore !== '' ? parseInt(checkScore, 10) : null;
-    if (score !== null && (score < 0 || score > maxScore)) {
-      alert(`Оценка должна быть от 0 до ${maxScore}`);
+    if (score !== null && (score < 1 || score > 10)) {
+      alert('Оценка должна быть от 1 до 10');
       return;
     }
     try {
@@ -48,6 +48,7 @@ export default function TeacherSubmissions() {
       setCheckingId(null);
       await fetchSubmissions();
     } catch (err) {
+      alert('Ошибка сохранения: ' + (err.response?.data?.error || err.message));
       console.error('Ошибка проверки:', err);
     }
   };
@@ -141,8 +142,8 @@ export default function TeacherSubmissions() {
                   )}
                   {sub.file_url && (
                     <div className="mt-2">
-                      <a href={sub.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                        📎 Прикреплённый файл
+                      <a href={`http://localhost:5000${sub.file_url}`} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                        📎 Прикреплённый файл (скачать)
                       </a>
                     </div>
                   )}
@@ -155,20 +156,18 @@ export default function TeacherSubmissions() {
 
                 <div className="flex flex-col items-end gap-2">
                   {sub.status === 'checked' && sub.score !== null ? (
-                    <span className={`text-lg font-bold ${sub.score >= 70 ? 'text-emerald-600' : sub.score >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
-                      {sub.score}/{sub.max_score}
+                    <span className={`text-lg font-bold ${sub.score >= 9 ? 'text-emerald-600' : sub.score >= 7 ? 'text-blue-600' : sub.score >= 4 ? 'text-amber-600' : 'text-red-600'}`}>
+                      {sub.score}/10
                     </span>
                   ) : (
-                    <span className="text-sm text-slate-400">—/{sub.max_score}</span>
+                    <span className="text-sm text-slate-400">—/10</span>
                   )}
-                  {sub.status !== 'checked' && (
-                    <button
-                      onClick={() => startCheck(sub)}
-                      className="btn-primary text-sm"
-                    >
-                      Проверить
-                    </button>
-                  )}
+                  <button
+                    onClick={() => startCheck(sub)}
+                    className="btn-primary text-sm"
+                  >
+                    {sub.status === 'checked' ? 'Изменить' : 'Проверить'}
+                  </button>
                 </div>
               </div>
 
@@ -178,18 +177,22 @@ export default function TeacherSubmissions() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1">
-                        Оценка (макс. {sub.max_score})
+                        Оценка (1–10)
                       </label>
                       <input
                         type="number"
-                        min="0"
-                        max={sub.max_score}
+                        min="1"
+                        max="10"
                         value={checkScore}
                         onChange={(e) => setCheckScore(e.target.value)}
                         className="input-field text-center text-xl font-bold"
                         placeholder="—"
                         autoFocus
                       />
+                      <div className="flex justify-between mt-1 text-xs text-slate-400">
+                        <span>1 — неудовл.</span>
+                        <span>10 — отлично</span>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Комментарий</label>
@@ -204,7 +207,7 @@ export default function TeacherSubmissions() {
                   </div>
                   <div className="flex gap-2 mt-3">
                     <button
-                      onClick={() => saveCheck(sub.id, sub.max_score)}
+                      onClick={() => saveCheck(sub.id, 10)}
                       className="btn-primary"
                     >
                       Сохранить оценку
