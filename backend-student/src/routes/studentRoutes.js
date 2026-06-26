@@ -13,5 +13,6 @@ router.get('/lab-works', studentController.getLabWorks);
 router.get('/lab-works/:id', studentController.getLabWorkDetails);
 router.get('/lab-works/:id/my-submission', studentController.getMySubmission);
 router.post('/lab-works/:id/submit', uploadLab, studentController.submitLabWork);
+router.get('/notifications', studentController.getNotifications);
 
 module.exports = router;

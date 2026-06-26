@@ -75,6 +75,20 @@ class LabSubmission {
     return result.rows[0];
   }
 
+  // Найти недавние проверки работ студента
+  static async findRecentChecks(studentEmail, days) {
+    const query = `
+      SELECT ls.*, lw.title as lab_title, lw.subject
+      FROM lab_submissions ls
+      JOIN lab_works lw ON ls.lab_work_id = lw.id
+      WHERE ls.student_email = $1 AND ls.status = 'checked'
+        AND ls.checked_at >= CURRENT_DATE - INTERVAL '${days} days'
+      ORDER BY ls.checked_at DESC
+    `;
+    const result = await pool.query(query, [studentEmail]);
+    return result.rows;
+  }
+
   // Получить сдачи по лабораторной работе
   static async getSubmissions(labWorkId) {
     const query = `
@@ -83,6 +97,20 @@ class LabSubmission {
       ORDER BY submitted_at DESC
     `;
     const result = await pool.query(query, [labWorkId]);
+    return result.rows;
+  }
+
+  // Получить недавние сдачи для преподавателя
+  static async getRecentSubmissions(teacherEmail, days) {
+    const query = `
+      SELECT ls.*, lw.title as lab_title, lw.subject, lw.due_date
+      FROM lab_submissions ls
+      JOIN lab_works lw ON ls.lab_work_id = lw.id
+      WHERE lw.teacher_email = $1
+        AND ls.submitted_at >= CURRENT_DATE - INTERVAL '${days} days'
+      ORDER BY ls.submitted_at DESC
+    `;
+    const result = await pool.query(query, [teacherEmail]);
     return result.rows;
   }
 

@@ -91,5 +91,7 @@ router.get('/students', teacherController.getAllStudents);
 
 // Деактивировать/активировать студента
 router.put('/students/:id/active', teacherController.setStudentActive);
+// Уведомления (новые сдачи)
+router.get('/notifications', teacherController.getNotifications);
 
 module.exports = router;

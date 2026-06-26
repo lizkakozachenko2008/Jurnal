@@ -37,6 +37,10 @@ export default function TeacherPrograms() {
     comment: '',
   });
 
+  // Сообщения об ошибках
+  const [addError, setAddError] = useState('');
+  const [teamError, setTeamError] = useState('');
+
   // Загрузка предметов преподавателя
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -94,7 +98,15 @@ export default function TeacherPrograms() {
   };
 
   const addLesson = async () => {
-    if (!form.topic) return;
+    setAddError('');
+    if (!form.topic.trim()) {
+      setAddError('Введите тему занятия');
+      return;
+    }
+    if (form.materialsFile && form.materialsFile.size > 10 * 1024 * 1024) {
+      setAddError('Файл слишком большой (макс. 10 МБ)');
+      return;
+    }
     try {
       await api.post('/api/teacher/programs', {
         subject: form.subject,
@@ -163,7 +175,8 @@ export default function TeacherPrograms() {
       const formData = new FormData();
       formData.append('file', file);
       await api.post(`/api/teacher/programs/${lessonId}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' });
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       const { data } = await api.get(`/api/teacher/programs/${encodeURIComponent(selectedSubject)}`);
       setProgram(data.data);
     } catch (err) {
@@ -179,12 +192,25 @@ export default function TeacherPrograms() {
   };
 
   const addTeam = () => {
-    if (!newTeamName.trim()) return;
+    setTeamError('');
+    if (!newTeamName.trim()) {
+      setTeamError('Введите название команды');
+      return;
+    }
+    if (teams[newTeamName.trim()]) {
+      setTeamError('Команда с таким названием уже существует');
+      return;
+    }
     setTeams(t => ({ ...t, [newTeamName.trim()]: [] }));
     setNewTeamName('');
   };
 
   const assignStudent = (teamName, student) => {
+    setTeamError('');
+    if (!student.is_active) {
+      setTeamError(`Нельзя добавить отчисленного студента: ${student.full_name}`);
+      return;
+    }
     setTeams(t => {
       // Удалить студента из других команд
       const updated = {};
@@ -198,6 +224,12 @@ export default function TeacherPrograms() {
   };
 
   const saveTeams = async () => {
+    setTeamError('');
+    const activeTeams = Object.entries(teams).filter(([_, members]) => members.length > 0);
+    if (activeTeams.length === 0) {
+      setTeamError('Создайте хотя бы одну команду с участниками');
+      return;
+    }
     try {
       for (const [teamName, members] of Object.entries(teams)) {
         for (const student of members) {
@@ -212,7 +244,7 @@ export default function TeacherPrograms() {
       setShowTeamModal(null);
       alert('Команды сохранены!');
     } catch (err) {
-      console.error('Ошибка сохранения команд:', err);
+      setTeamError('Ошибка сохранения: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -354,9 +386,12 @@ export default function TeacherPrograms() {
 
       {/* Модальное окно добавления */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => { setShowAdd(false); resetForm(); }}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => { setShowAdd(false); setAddError(''); resetForm(); }}>
           <div className="card p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-slate-900 mb-4">Добавить занятие</h2>
+            {addError && (
+              <div className="mb-3 p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{addError}</div>
+            )}
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -405,6 +440,9 @@ export default function TeacherPrograms() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowTeamModal(null)}>
           <div className="card p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-slate-900 mb-4">Настройка команд</h2>
+            {teamError && (
+              <div className="mb-3 p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{teamError}</div>
+            )}
 
             {/* Создание команды */}
             <div className="flex gap-2 mb-4">
@@ -446,7 +484,7 @@ export default function TeacherPrograms() {
               <div>
                 <h3 className="text-sm font-semibold text-slate-700 mb-2">Студенты</h3>
                 <div className="space-y-1 max-h-60 overflow-y-auto">
-                  {allStudents.map((student) => (
+                  {allStudents.filter(s => s.is_active).map((student) => (
                     <div key={student.id} className="flex items-center justify-between bg-white rounded-lg p-2 border border-slate-200">
                       <span className="text-sm text-slate-700">{student.full_name}</span>
                       <select
@@ -464,6 +502,17 @@ export default function TeacherPrograms() {
                       </select>
                     </div>
                   ))}
+                  {allStudents.filter(s => !s.is_active).length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-slate-200">
+                      <p className="text-xs text-slate-400 mb-1">Отчисленные (не могут быть в командах):</p>
+                      {allStudents.filter(s => !s.is_active).map((student) => (
+                        <div key={student.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-2 border border-slate-200 opacity-50">
+                          <span className="text-sm text-slate-500 line-through">{student.full_name}</span>
+                          <span className="text-xs text-red-400">Отчислен</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

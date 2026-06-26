@@ -28,6 +28,7 @@ export default function TeacherJournal() {
   const [editComment, setEditComment] = useState('');
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [currentGradeTarget, setCurrentGradeTarget] = useState(null);
+  const [gradeError, setGradeError] = useState('');
 
   // Контекстное меню для ячейки
   const [contextMenu, setContextMenu] = useState(null); // { x, y, student, date }
@@ -100,6 +101,7 @@ export default function TeacherJournal() {
     setCurrentGradeTarget({ student, date, existing });
     setEditValue(existing ? String(existing.grade) : '');
     setEditComment(existing ? existing.teacher_comment || '' : '');
+    setGradeError('');
     setShowGradeModal(true);
   };
 
@@ -158,13 +160,14 @@ export default function TeacherJournal() {
 
   // Сохранить оценку (10-балльная система)
   const saveGrade = async () => {
+    setGradeError('');
     if (!editValue || isNaN(editValue)) {
-      alert('Введите оценку от 1 до 10');
+      setGradeError('Введите оценку от 1 до 10');
       return;
     }
     const numGrade = parseInt(editValue, 10);
     if (numGrade < 1 || numGrade > 10) {
-      alert('Оценка должна быть от 1 до 10');
+      setGradeError('Оценка должна быть от 1 до 10');
       return;
     }
 
@@ -188,7 +191,7 @@ export default function TeacherJournal() {
       setShowGradeModal(false);
       await fetchJournal();
     } catch (err) {
-      alert('Ошибка сохранения: ' + (err.response?.data?.error || err.message));
+      setGradeError('Ошибка: ' + (err.response?.data?.error || err.message));
       console.error('Ошибка сохранения оценки:', err);
     }
   };
@@ -602,6 +605,9 @@ export default function TeacherJournal() {
             <p className="text-sm text-slate-500 mb-4">
               {new Date(currentGradeTarget.date).toLocaleDateString('ru-RU')}
             </p>
+            {gradeError && (
+              <div className="mb-3 p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{gradeError}</div>
+            )}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Оценка (1–10)</label>
