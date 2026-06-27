@@ -22,22 +22,26 @@ export default function GradeCharts() {
     fetchJournal();
   }, [subject, groupName]);
 
-  // Экспорт в CSV
+  const normDate = (d) => {
+    if (!d) return '';
+    return typeof d === 'string' ? d.split('T')[0] : new Date(d).toISOString().split('T')[0];
+  };
+
+  // Экспорт CSV
   const exportCSV = () => {
     if (!journal) return;
     const { students, grades, lessonDates } = journal;
+    const activeStudents = students.filter(s => s.is_active);
 
-    // Заголовок
     let csv = 'Студент,' + lessonDates.map(ld => {
       const d = new Date(ld.lesson_date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
       return `"${d} (${ld.topic || ld.lesson_type})"`;
     }).join(',') + ',Средний\n';
 
-    // Данные
-    students.forEach(student => {
+    activeStudents.forEach(student => {
       const row = [student.full_name];
       lessonDates.forEach(ld => {
-        const grade = grades.find(g => g.student_email === student.email && g.date === ld.lesson_date);
+        const grade = grades.find(g => g.student_email === student.email && normDate(g.date) === normDate(ld.lesson_date));
         row.push(grade ? grade.grade : '');
       });
       const studentGrades = grades.filter(g => g.student_email === student.email);
@@ -46,7 +50,6 @@ export default function GradeCharts() {
       csv += row.join(',') + '\n';
     });
 
-    // Скачать
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -56,46 +59,49 @@ export default function GradeCharts() {
     URL.revokeObjectURL(url);
   };
 
-  // Экспорт в Word (таблица HTML)
-  const exportWord = () => {
+  // Экспорт Excel (XML Spreadsheet)
+  const exportExcel = () => {
     if (!journal) return;
     const { students, grades, lessonDates } = journal;
+    const activeStudents = students.filter(s => s.is_active);
 
-    let html = `<html><head><meta charset="utf-8"><style>
-      table { border-collapse: collapse; width: 100%; font-family: Arial; }
-      th, td { border: 1px solid #333; padding: 6px 10px; text-align: center; font-size: 11px; }
-      th { background: #4f46e5; color: white; }
-      tr:nth-child(even) { background: #f8fafc; }
-      .name { text-align: left; font-weight: bold; }
-    </style></head><body>
-    <h2>Журнал: ${subject} — группа ${groupName}</h2>
-    <table>
-      <tr><th>Ст</th>`;
+    let xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Styles>
+    <Style ss:ID="header"><Font ss:Bold="1"/><Interior ss:Color="#4F46E5" ss:Pattern="Solid"/><Font ss:Color="#FFFFFF"/></Style>
+    <Style ss:ID="name"><Font ss:Bold="1"/></Style>
+  </Styles>
+  <Worksheet ss:Name="Журнал">
+    <Table>
+      <Row>
+        <Cell ss:StyleID="header"><Data ss:Type="String">Студент</Data></Cell>`;
 
     lessonDates.forEach(ld => {
       const d = new Date(ld.lesson_date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-      html += `<th>${d}<br><small>${ld.topic || ld.lesson_type}</small></th>`;
+      xml += `<Cell ss:StyleID="header"><Data ss:Type="String">${d}</Data></Cell>`;
     });
-    html += '<th>Средний</th></tr>';
+    xml += `<Cell ss:StyleID="header"><Data ss:Type="String">Средний</Data></Cell></Row>`;
 
-    students.forEach(student => {
-      html += `<tr><td class="name">${student.full_name}</td>`;
+    activeStudents.forEach(student => {
+      xml += `<Row><Cell ss:StyleID="name"><Data ss:Type="String">${student.full_name}</Data></Cell>`;
       lessonDates.forEach(ld => {
-        const grade = grades.find(g => g.student_email === student.email && g.date === ld.lesson_date);
-        html += `<td>${grade ? grade.grade : '—'}</td>`;
+        const grade = grades.find(g => g.student_email === student.email && normDate(g.date) === normDate(ld.lesson_date));
+        xml += `<Cell><Data ss:Type="String">${grade ? grade.grade : ''}</Data></Cell>`;
       });
       const studentGrades = grades.filter(g => g.student_email === student.email);
-      const avg = studentGrades.length ? (studentGrades.reduce((s, g) => s + g.grade, 0) / studentGrades.length).toFixed(1) : '—';
-      html += `<td><strong>${avg}</strong></td></tr>`;
+      const avg = studentGrades.length ? (studentGrades.reduce((s, g) => s + g.grade, 0) / studentGrades.length).toFixed(1) : '';
+      xml += `<Cell><Data ss:Type="String">${avg}</Data></Cell></Row>`;
     });
 
-    html += '</table></body></html>';
+    xml += `</Table></Worksheet></Workbook>`;
 
-    const blob = new Blob([html], { type: 'application/msword' });
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Журнал_${subject}_${groupName}.doc`;
+    a.download = `Журнал_${subject}_${groupName}.xls`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -116,16 +122,18 @@ export default function GradeCharts() {
 
   const { students, grades, lessonDates } = journal;
 
-  // Расчёт данных для графика
-  const studentAverages = students.map(student => {
+  // Только активные студенты
+  const activeStudents = students.filter(s => s.is_active);
+
+  // Средний балл только по активным
+  const studentAverages = activeStudents.map(student => {
     const sg = grades.filter(g => g.student_email === student.email);
     const avg = sg.length ? sg.reduce((s, g) => s + g.grade, 0) / sg.length : 0;
-    return { name: student.full_name, avg: avg.toFixed(1), is_active: student.is_active };
+    return { name: student.full_name, avg: avg.toFixed(1) };
   }).sort((a, b) => b.avg - a.avg);
 
   const maxAvg = Math.max(...studentAverages.map(s => parseFloat(s.avg)), 10);
 
-  // Динамика среднего балла по датам
   const dateAverages = lessonDates.map(ld => {
     const dateGrades = grades.filter(g => g.date === ld.lesson_date);
     const avg = dateGrades.length ? dateGrades.reduce((s, g) => s + g.grade, 0) / dateGrades.length : 0;
@@ -142,18 +150,12 @@ export default function GradeCharts() {
           <h1 className="text-2xl font-bold text-slate-900">Графики: {subject}</h1>
           <p className="text-slate-500">Группа: {groupName}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={exportCSV} className="btn-ghost flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            Экспорт CSV
+            📄 CSV
           </button>
-          <button onClick={exportWord} className="btn-ghost flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            Экспорт Word
+          <button onClick={exportExcel} className="btn-ghost flex items-center gap-2">
+            📊 Excel
           </button>
         </div>
       </div>
@@ -164,15 +166,13 @@ export default function GradeCharts() {
         <div className="space-y-3">
           {studentAverages.map((s, i) => (
             <div key={i} className="flex items-center gap-3">
-              <div className="w-32 text-sm text-slate-700 truncate flex-shrink-0" title={s.name}>
-                {s.name} {!s.is_active && <span className="text-red-400 text-xs">(отч.</span>}
-              </div>
+              <div className="w-40 text-sm text-slate-700 truncate flex-shrink-0" title={s.name}>{s.name}</div>
               <div className="flex-1 bg-slate-100 rounded-full h-6 relative overflow-hidden">
                 <div
                   className={`h-6 rounded-full transition-all flex items-center justify-end pr-2 ${
                     s.avg >= 9 ? 'bg-emerald-500' : s.avg >= 7 ? 'bg-blue-500' : s.avg >= 4 ? 'bg-amber-500' : 'bg-red-500'
                   }`}
-                  style={{ width: `${Math.max((s.avg / maxAvg) * 100, 5)}%` }}
+                  style={{ width: `${Math.max((s.avg / maxAvg) * 100, 8)}%` }}
                 >
                   <span className="text-white text-xs font-bold">{s.avg}</span>
                 </div>
@@ -202,11 +202,7 @@ export default function GradeCharts() {
       )}
 
       {/* Статистика */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="card p-5 text-center">
-          <div className="text-3xl font-bold text-indigo-600">{students.filter(s => s.is_active).length}</div>
-          <div className="text-sm text-slate-500 mt-1">Активных студентов</div>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="card p-5 text-center">
           <div className="text-3xl font-bold text-emerald-600">
             {studentAverages.length > 0 ? studentAverages[0].avg : '—'}

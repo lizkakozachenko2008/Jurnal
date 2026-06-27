@@ -12,7 +12,9 @@ router.get('/grades/:subject', studentController.getSubjectGrades);
 router.get('/lab-works', studentController.getLabWorks);
 router.get('/lab-works/:id', studentController.getLabWorkDetails);
 router.get('/lab-works/:id/my-submission', studentController.getMySubmission);
+router.get('/lab-works/:id/team', studentController.getTeamMembers);
 router.post('/lab-works/:id/submit', uploadLab, studentController.submitLabWork);
 router.get('/notifications', studentController.getNotifications);
+router.get('/journal', studentController.getJournal);
 
 module.exports = router;

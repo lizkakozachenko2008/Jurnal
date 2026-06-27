@@ -90,6 +90,17 @@ class StudentController {
     }
   }
 
+  // Получить напарников по командной лабе
+  async getTeamMembers(req, res, next) {
+    try {
+      const { id } = req.params;
+      const members = await StudentService.getTeamMembers(id, req.user.email);
+      res.json({ success: true, data: members });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Сдать лабораторную работу (с файлом)
   async submitLabWork(req, res, next) {
     try {
@@ -120,6 +131,16 @@ class StudentController {
     try {
       const notifications = await StudentService.getNotifications(req.user.email);
       res.json({ success: true, data: notifications });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Получить журнал студента (оценки + посещаемость)
+  async getJournal(req, res, next) {
+    try {
+      const journal = await StudentService.getJournal(req.user.email, req.user.groupName);
+      res.json({ success: true, data: journal });
     } catch (error) {
       next(error);
     }
