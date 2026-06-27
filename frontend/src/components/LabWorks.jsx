@@ -183,10 +183,10 @@ export default function LabWorks() {
                     {lab.description && <p className="text-sm text-slate-600 mt-4 leading-relaxed">{lab.description}</p>}
                     <div className="mt-4 flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg">
-                        📅 Выдана: {lab.created_at ? new Date(lab.created_at).toLocaleDateString('ru-RU') : '—'}
+                        Выдана: {lab.created_at ? new Date(lab.created_at).toLocaleDateString('ru-RU') : '—'}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg">
-                        ⭐ Макс: {lab.max_score || 10}/10
+                        Макс: {lab.max_score || 10}/10
                       </div>
                       {lab.is_team_work && (
                         <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Командная</span>
@@ -210,7 +210,6 @@ export default function LabWorks() {
                           ))}
                         </div>
                       </div>
-                    )}
                     )}
 
                     {/* Статус сдачи или кнопка */}
@@ -237,7 +236,7 @@ export default function LabWorks() {
                           </div>
                           {submissions[lab.id].file_url && (
                             <a href={`http://localhost:5000${submissions[lab.id].file_url}`} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:text-indigo-700">
-                              📎 Ваш прикреплённый файл
+                              Ваш прикреплённый файл
                             </a>
                           )}
                           {submissions[lab.id].teacher_comment && (
