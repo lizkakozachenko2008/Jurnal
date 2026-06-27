@@ -6,6 +6,8 @@ export default function Grades() {
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expandedSubject, setExpandedSubject] = useState(null); // раскрытый предмет
+  const PAGE_SIZE = 7;
 
   useEffect(() => {
     const fetchGrades = async () => {
@@ -106,7 +108,7 @@ export default function Grades() {
                 </div>
 
                 <div className="space-y-2">
-                  {subjectGrades.map((grade) => (
+                  {(expandedSubject === subject ? subjectGrades : subjectGrades.slice(0, PAGE_SIZE)).map((grade) => (
                     <div key={grade.id} className="flex justify-between text-sm items-center">
                       <span className="text-slate-500">
                         {new Date(grade.date).toLocaleDateString('ru-RU')}
@@ -117,6 +119,21 @@ export default function Grades() {
                     </div>
                   ))}
                 </div>
+
+                {subjectGrades.length > PAGE_SIZE && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setExpandedSubject(expandedSubject === subject ? null : subject);
+                    }}
+                    className="mt-3 w-full text-center text-xs text-indigo-600 hover:text-indigo-700 font-medium py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
+                  >
+                    {expandedSubject === subject
+                      ? 'Свернуть'
+                      : `Показать все (${subjectGrades.length})`
+                    }
+                  </button>
+                )}
 
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-xs text-slate-400">

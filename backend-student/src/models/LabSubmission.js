@@ -50,6 +50,32 @@ class LabSubmission {
     return result.rows[0];
   }
 
+  // Получить напарников по командной лабе
+  static async getTeamMembers(labWorkId, studentEmail) {
+    // Сначала найти team_name студента
+    const studentTeamQuery = `
+      SELECT team_name FROM lab_submissions
+      WHERE lab_work_id = $1 AND student_email = $2
+      LIMIT 1
+    `;
+    const studentTeamResult = await pool.query(studentTeamQuery, [labWorkId, studentEmail]);
+
+    if (studentTeamResult.rows.length === 0 || !studentTeamResult.rows[0].team_name) {
+      return []; // Студент не в команде
+    }
+
+    const teamName = studentTeamResult.rows[0].team_name;
+
+    // Получить всех участников команды
+    const membersQuery = `
+      SELECT student_email, student_name
+      FROM lab_submissions
+      WHERE lab_work_id = $1 AND team_name = $2 AND student_email != $3
+    `;
+    const membersResult = await pool.query(membersQuery, [labWorkId, teamName, studentEmail]);
+    return membersResult.rows;
+  }
+
   // Найти сдачу студента по лабораторной
   static async findByStudent(labWorkId, studentEmail) {
     const query = `

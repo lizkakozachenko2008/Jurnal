@@ -17,12 +17,15 @@ import TeacherLabWorks from './components/TeacherLabWorks';
 import TeacherPrograms from './components/TeacherPrograms';
 import TeacherSubmissions from './components/TeacherSubmissions';
 import GradeCharts from './components/GradeCharts';
+import StudentJournal from './components/StudentJournal';
+import Footer from './components/Footer';
 
 function Layout({ children }) {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-6 py-8">{children}</main>
+      <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
+      <Footer />
     </div>
   );
 }
@@ -115,6 +118,14 @@ export default function App() {
         element={
           <ProtectedRoute allowedRoles={['student']}>
             <Layout><Schedule /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/journal"
+        element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <Layout><StudentJournal /></Layout>
           </ProtectedRoute>
         }
       />
